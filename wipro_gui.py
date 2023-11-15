@@ -2,82 +2,124 @@ import tkinter as tk
 import os
 from PIL import Image, ImageTk, ImageDraw
 
+from detected_damage import DetectedDamage
+from detection_rating import DetectionRating
+
+
 class ImageApp:
-    output_folder = 'result'
+    OUTPUT_FOLDER = 'result'
+    CANVAS_WIDTH = 800
+    CANVAS_HEIGHT = 500
 
     def __init__(self, root):
+        self.draw = None
         self.root = root
-        self.root.title("Image Viewer")
-        self.root.geometry("800x600")
+        self.root.title("Auswertung Erkennung Buchschäden")
+        self.root.geometry(f"{self.CANVAS_WIDTH}x{self.CANVAS_HEIGHT + 150}")
 
         self.image_index = 0
         self.image_paths = []
         self.current_image = None
+        self.detected_damage_queue = []
 
-        self.canvas = tk.Canvas(root, width=800, height=500)
+        self.canvas = tk.Canvas(root, width=self.CANVAS_WIDTH, height=self.CANVAS_HEIGHT)
         self.canvas.pack()
 
         self.prev_button = tk.Button(root, text="Previous Image", command=self.prev_image)
         self.prev_button.pack()
         self.next_button = tk.Button(root, text="Next Image", command=self.next_image)
         self.next_button.pack()
-        self.fp_button = tk.Button(root, text="False Positive", command=self.false_positive)
+        self.fp_button = tk.Button(root, text="False Positive", command=lambda: self.rate_detection(DetectionRating.FALSE_POSITIVE))
         self.fp_button.pack()
-        self.tp_button = tk.Button(root, text="True Positive", command=self.true_positive)
+        self.tp_button = tk.Button(root, text="True Positive", command=lambda: self.rate_detection(DetectionRating.TRUE_POSITIVE))
         self.tp_button.pack()
 
-        self.root.bind("<KeyPress-f>", self.false_positive)
-        self.root.bind("<KeyPress-t>", self.true_positive)
+        self.root.bind("<KeyPress-f>", lambda e: self.rate_detection(DetectionRating.FALSE_POSITIVE))
+        self.root.bind("<KeyPress-t>", lambda e: self.rate_detection(DetectionRating.TRUE_POSITIVE))
 
         # Load images from the 'result' directory at startup
         self.load_images_from_directory()
 
     def load_images_from_directory(self):
-        self.image_paths = [os.path.join(self.output_folder, filename) for filename in os.listdir(self.output_folder) if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp'))]
+        self.image_paths = [os.path.join(self.OUTPUT_FOLDER, filename) for filename in os.listdir(self.OUTPUT_FOLDER) if
+                            filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp'))]
         self.show_current_image()
 
     def show_current_image(self):
         if self.image_paths:
             image_path = self.image_paths[self.image_index]
             image = Image.open(image_path)
-            image.thumbnail((800, 500))
+            width, height = image.size
+            image.thumbnail((self.CANVAS_WIDTH, self.CANVAS_HEIGHT))
 
             # Create an ImageDraw object to draw on the image
-            draw = ImageDraw.Draw(image)
+            self.draw = ImageDraw.Draw(image)
 
-            # Draw a red square at (100, 100) with a size of 100x100 pixels TODO: take output for image as input, include coordinates from there
-            square_size = 100
-            draw.rectangle([100, 100, 100 + square_size, 100 + square_size], outline="red", width=3)
+            if not self.detected_damage_queue:
+                self.detected_damage_queue = self.get_detected_damage(image_path, width, height)
+
+            self.draw_damage_info(self.draw, self.detected_damage_queue)
 
             image = ImageTk.PhotoImage(image)
             self.canvas.create_image(0, 0, anchor=tk.NW, image=image)
             self.canvas.image = image
             self.current_image = image
 
+    def get_detected_damage(self, image_path, width, height):
+        base_name = os.path.splitext(os.path.basename(image_path))[0]
+        txt_filename = os.path.join(self.OUTPUT_FOLDER, base_name + ".txt")
+        file1 = open(txt_filename, 'r')
+        lines = file1.readlines()
+        queue = []
+        for idLine, line in enumerate(lines):
+            queue.append(DetectedDamage(line.strip(), image_path, idLine, width, height))
+        return queue
+
+    def draw_damage_info(self, draw, detected_damage_queue):
+        for detected_damage in detected_damage_queue:
+            draw.rectangle([detected_damage.x1 * self.CANVAS_WIDTH, detected_damage.y1 * self.CANVAS_HEIGHT,
+                            detected_damage.x2 * self.CANVAS_WIDTH, detected_damage.y2 * self.CANVAS_HEIGHT],
+                           outline="red",
+                           width=1)
+
     def prev_image(self):
+        self.detected_damage_queue = []
         if self.image_paths:
             self.image_index = (self.image_index - 1) % len(self.image_paths)
             self.show_current_image()
 
     def next_image(self):
+        self.detected_damage_queue = []
         if self.image_paths:
             self.image_index = (self.image_index + 1) % len(self.image_paths)
             self.show_current_image()
 
-    def false_positive(self):
-        # TODO: isolate detected region, move file into training directory and mark it as "background" or sth, then generate text file to train then go to next image
-        return
-    def true_positive(self):
-        # TODO: isolate detected region, move file into training directory then generate text file to train then go to next image
-        return
+    def rate_detection(self, detection_rating):
+        detected_damage = self.detected_damage_queue.pop(0)
+        detected_damage.save_new_training_data(detection_rating)
+
+        if not self.detected_damage_queue:
+            self.next_image()
+            self.remove_image()
+        else:
+            self.show_current_image()
 
     def save_text_file(self, event):
         if self.current_image:
             image_path = self.image_paths[self.image_index]
             base_name = os.path.splitext(os.path.basename(image_path))[0]
-            txt_filename = os.path.join(self.output_folder, base_name + ".txt")
+            txt_filename = os.path.join(self.OUTPUT_FOLDER, base_name + ".txt")
             with open(txt_filename, "w") as file:
                 file.write("Text related to " + base_name)
+
+    def remove_image(self):
+        image_index = (self.image_index + 1) % len(self.image_paths)
+        image_path = self.image_paths[image_index]
+        base_name = os.path.splitext(os.path.basename(image_path))[0]
+        txt_filename = os.path.join(self.OUTPUT_FOLDER, base_name + ".txt")
+        os.remove(image_path)
+        os.remove(txt_filename)
+
 
 if __name__ == "__main__":
     root = tk.Tk()
