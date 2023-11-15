@@ -10,6 +10,7 @@ class ImageApp:
     OUTPUT_FOLDER = 'result'
     CANVAS_WIDTH = 800
     CANVAS_HEIGHT = 500
+    placeholder = "resources/no-images-placeholder.png"
 
     def __init__(self, root):
         self.draw = None
@@ -64,6 +65,13 @@ class ImageApp:
             self.canvas.create_image(0, 0, anchor=tk.NW, image=image)
             self.canvas.image = image
             self.current_image = image
+        else:
+            placeholder = Image.open(self.placeholder)
+            placeholder.thumbnail((self.CANVAS_WIDTH, self.CANVAS_HEIGHT))
+            ph = ImageTk.PhotoImage(placeholder)
+            self.canvas.create_image(0, 0, anchor=tk.NW, image=ph)
+            self.canvas.image = placeholder
+            self.current_image = placeholder
 
     def get_detected_damage(self, image_path, width, height):
         base_name = os.path.splitext(os.path.basename(image_path))[0]
@@ -95,30 +103,27 @@ class ImageApp:
             self.show_current_image()
 
     def rate_detection(self, detection_rating):
-        detected_damage = self.detected_damage_queue.pop(0)
-        detected_damage.save_new_training_data(detection_rating)
+        if self.image_paths:
+            detected_damage = self.detected_damage_queue.pop(0)
+            detected_damage.save_new_training_data(detection_rating)
 
-        if not self.detected_damage_queue:
-            self.next_image()
-            self.remove_image()
-        else:
-            self.show_current_image()
-
-    def save_text_file(self, event):
-        if self.current_image:
-            image_path = self.image_paths[self.image_index]
-            base_name = os.path.splitext(os.path.basename(image_path))[0]
-            txt_filename = os.path.join(self.OUTPUT_FOLDER, base_name + ".txt")
-            with open(txt_filename, "w") as file:
-                file.write("Text related to " + base_name)
+            if not self.detected_damage_queue:
+                self.remove_image()
+                self.next_image()
+            else:
+                self.show_current_image()
 
     def remove_image(self):
-        image_index = (self.image_index + 1) % len(self.image_paths)
+        image_index = self.image_index % len(self.image_paths)
         image_path = self.image_paths[image_index]
         base_name = os.path.splitext(os.path.basename(image_path))[0]
         txt_filename = os.path.join(self.OUTPUT_FOLDER, base_name + ".txt")
         os.remove(image_path)
         os.remove(txt_filename)
+        self.image_paths.pop(image_index)
+
+        if not self.image_paths:
+            self.show_current_image()
 
 
 if __name__ == "__main__":
