@@ -5,8 +5,7 @@ from ultralytics.utils.plotting import Annotator
 
 model_folder = 'train3'
 img_folder = 'datasets/test/images'
-output_folder = 'result'
-model = YOLO('runs/detect/train12/weights/best.pt')
+model = YOLO('runs/detect/train17/weights/best.pt')
 #model = YOLO('yolov8n.pt')
 
 for img_path in listdir(img_folder):
@@ -25,9 +24,9 @@ for img_path in listdir(img_folder):
             c = box.cls
             annotator.box_label(b, model.names[int(c)])
 
-            with open(f'{output_folder}/{img_path}.txt', 'a') as f:
-                f.write(f'{b}|{model.names[int(c)]}\n')
-                print(f'{b}|{model.names[int(c)]}')
+            with open('out.txt', 'a') as f:
+                f.write(f'{img_path}|{b}|{model.names[int(c)]}\n')
+                print(f'{img_path}|{model.names[int(c)]}')
 
     frame = annotator.result()
     cv2.imshow('YOLO V8 Detection', frame)

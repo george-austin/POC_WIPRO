@@ -12,6 +12,6 @@ model = YOLO('yolov8n.pt')
 log('MODEL LOADED')
 
 log('START TRAIN')
-model.train(data='data.yaml', epochs=10)
+model.train(data='data.yaml', epochs=100)
 log('END TRAIN')
 log('END')

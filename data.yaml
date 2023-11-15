@@ -1,15 +1,7 @@
 train: train/images
 val: valid/images
 
-nc: 10
+nc: 2
 names:
-  0: Bildartefakte
-  1: Manuell ueberpruefter Container
-  2: Schimmel
-  3: Schmutz
-  4: Schaeden
-  5: Schaedlinge
-  6: Sonstiges
-  7: Starke ueberbeleuchtung oder Unterbeleuchtung
-  8: Unerwartetes Layout
-  9: Wasser
+  0: Kein Schaden
+  1: Schaden
