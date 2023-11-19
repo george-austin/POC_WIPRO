@@ -8,6 +8,9 @@ class DetectedDamage:
     TRAINING_IMAGES_PATH = "datasets/train/images"
     TRAINING_LABELS_PATH = "datasets/train/labels"
 
+    # margin so only part of the image is labeled and some of the background is visible for training purposes
+    CROP_MARGIN = 10
+
     def __init__(self, detected_string, image_path, number, width, height):
         # Split the string into coordinates and damage type
         coordinates, damage_type = detected_string.split('|')
@@ -32,12 +35,12 @@ class DetectedDamage:
         cropped_image = original_image.crop((left, upper, right, lower))
 
         base_path, ext = os.path.splitext(os.path.basename(self.image_path))
-        self.save_cropped_image(cropped_image, base_path)
+        width, height = self.save_cropped_image(cropped_image, base_path)
 
-        self.save_label_file(base_path, detection_rating)
+        self.save_cropped_label_file(base_path, detection_rating, width, height)
 
-    def save_label_file(self, base_path, detection_rating):
-        detection_info = f"{detection_rating.value} {self.x1} {self.y1} {self.x2} {self.y2}"
+    def save_cropped_label_file(self, base_path, detection_rating, width, height):
+        detection_info = f"{detection_rating.value} {self.CROP_MARGIN} {self.CROP_MARGIN} {width - self.CROP_MARGIN} {height - self.CROP_MARGIN}"
         label_filename = os.path.join(self.TRAINING_LABELS_PATH, f"{base_path}_{self.number}.txt")
         with open(label_filename, 'a') as label_file:
             # only write coords to file if it is TP, create training label file in any case.
@@ -47,12 +50,11 @@ class DetectedDamage:
     def save_cropped_image(self, cropped_image, base_path):
         new_filename = os.path.join(self.TRAINING_IMAGES_PATH, f"{base_path}_{self.number}.png")
         cropped_image.save(new_filename)
+        return cropped_image.size
 
     def calculate_bounding_box_coords(self, original_image):
-        # margin so only part of the image is labeled and some of the background is visible for training purposes
-        margin = 10
-        left = int(self.x1 * original_image.width) - margin
-        upper = int(self.y1 * original_image.height) - margin
-        right = int(self.x2 * original_image.width) + margin
-        lower = int(self.y2 * original_image.height) + margin
+        left = int(self.x1 * original_image.width) - self.CROP_MARGIN
+        upper = int(self.y1 * original_image.height) - self.CROP_MARGIN
+        right = int(self.x2 * original_image.width) + self.CROP_MARGIN
+        lower = int(self.y2 * original_image.height) + self.CROP_MARGIN
         return left, lower, right, upper
