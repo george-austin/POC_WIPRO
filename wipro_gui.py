@@ -43,6 +43,8 @@ class ImageApp:
 
         self.root.bind("<KeyPress-f>", lambda e: self.rate_detection(DetectionRating.FALSE_POSITIVE))
         self.root.bind("<KeyPress-t>", lambda e: self.rate_detection(DetectionRating.TRUE_POSITIVE))
+        self.root.bind("<Left>", lambda e: self.prev_image())
+        self.root.bind("<Right>", lambda e: self.next_image())
 
         # Load images from the 'result' directory at startup
         self.load_images_from_directory()
