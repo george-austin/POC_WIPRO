@@ -1,6 +1,7 @@
 import tkinter as tk
 import os
 from PIL import Image, ImageTk, ImageDraw
+import subprocess
 
 from detected_damage import DetectedDamage
 from detection_rating import DetectionRating
@@ -8,15 +9,16 @@ from detection_rating import DetectionRating
 
 class ImageApp:
     OUTPUT_FOLDER = 'result'
+    training_script_path = 'train.py'
     CANVAS_WIDTH = 800
     CANVAS_HEIGHT = 500
-    placeholder = "resources/no-images-placeholder.png"
+    no_images_left_placeholder = "resources/no-images-placeholder.png"
 
     def __init__(self, root):
         self.draw = None
         self.root = root
         self.root.title("Auswertung Erkennung Buchschäden")
-        self.root.geometry(f"{self.CANVAS_WIDTH}x{self.CANVAS_HEIGHT + 150}")
+        self.root.geometry(f"{self.CANVAS_WIDTH}x{self.CANVAS_HEIGHT + 160}")
 
         self.image_index = 0
         self.image_paths = []
@@ -30,10 +32,14 @@ class ImageApp:
         self.prev_button.pack()
         self.next_button = tk.Button(root, text="Next Image", command=self.next_image)
         self.next_button.pack()
-        self.fp_button = tk.Button(root, text="False Positive", command=lambda: self.rate_detection(DetectionRating.FALSE_POSITIVE))
+        self.fp_button = tk.Button(root, text="False Positive",
+                                   command=lambda: self.rate_detection(DetectionRating.FALSE_POSITIVE))
         self.fp_button.pack()
-        self.tp_button = tk.Button(root, text="True Positive", command=lambda: self.rate_detection(DetectionRating.TRUE_POSITIVE))
+        self.tp_button = tk.Button(root, text="True Positive",
+                                   command=lambda: self.rate_detection(DetectionRating.TRUE_POSITIVE))
         self.tp_button.pack()
+        self.trigger_training_button = tk.Button(root, text="Retrain Model", command=self.start_training)
+        self.trigger_training_button.pack()
 
         self.root.bind("<KeyPress-f>", lambda e: self.rate_detection(DetectionRating.FALSE_POSITIVE))
         self.root.bind("<KeyPress-t>", lambda e: self.rate_detection(DetectionRating.TRUE_POSITIVE))
@@ -69,7 +75,7 @@ class ImageApp:
             self.show_placeholder()
 
     def show_placeholder(self):
-        placeholder = Image.open(self.placeholder)
+        placeholder = Image.open(self.no_images_left_placeholder)
         placeholder.thumbnail((self.CANVAS_WIDTH, self.CANVAS_HEIGHT))
         ph = ImageTk.PhotoImage(placeholder)
         self.canvas.create_image(0, 0, anchor=tk.NW, image=ph)
@@ -129,6 +135,14 @@ class ImageApp:
 
         if not self.image_paths:
             self.show_placeholder()
+
+    def start_training(self):
+        try:
+            # Use subprocess to start the script in a new console
+            subprocess.Popen(['start', 'cmd', '/k', 'python', self.training_script_path], shell=True)
+            print(f"Started {self.training_script_path} in an independent external console.")
+        except Exception as e:
+            print(f"Error starting external console: {e}")
 
 
 if __name__ == "__main__":
