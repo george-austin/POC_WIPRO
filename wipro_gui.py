@@ -1,6 +1,6 @@
 import tkinter as tk
 import os
-from PIL import Image, ImageTk, ImageDraw
+from PIL import Image, ImageTk, ImageDraw, ImageFont
 import subprocess
 
 from detected_damage import DetectedDamage
@@ -18,7 +18,7 @@ class ImageApp:
         self.draw = None
         self.root = root
         self.root.title("Auswertung Erkennung Buchschäden")
-        self.root.geometry(f"{self.CANVAS_WIDTH}x{self.CANVAS_HEIGHT + 160}")
+        self.root.geometry(f"{self.CANVAS_WIDTH}x{self.CANVAS_HEIGHT + 100}")
 
         self.image_index = 0
         self.image_paths = []
@@ -29,9 +29,9 @@ class ImageApp:
         self.canvas.pack()
 
         self.prev_button = tk.Button(root, text="Previous Image", command=self.prev_image)
-        self.prev_button.pack()
+        self.prev_button.pack(side="left")
         self.next_button = tk.Button(root, text="Next Image", command=self.next_image)
-        self.next_button.pack()
+        self.next_button.pack(side="right")
         self.fp_button = tk.Button(root, text="False Positive",
                                    command=lambda: self.rate_detection(DetectionRating.FALSE_POSITIVE))
         self.fp_button.pack()
@@ -98,6 +98,20 @@ class ImageApp:
                             detected_damage.x2 * self.CANVAS_WIDTH, detected_damage.y2 * self.CANVAS_HEIGHT],
                            outline="red",
                            width=1)
+            if len(detected_damage_queue) > 1:
+                font = ImageFont.truetype("arial.ttf", 14)
+                text = str(detected_damage.number+1) + "."
+                text_bbox = draw.textbbox((0, 0), text, font=font)
+                text_position = (detected_damage.x1 * self.CANVAS_WIDTH - 15,
+                                 detected_damage.y1 * self.CANVAS_HEIGHT - 15)
+                backdrop_coords = [
+                    text_position[0],
+                    text_position[1],
+                    text_position[0] + text_bbox[2] + 2,
+                    text_position[1] + text_bbox[3] + 2
+                ]
+                draw.rectangle(backdrop_coords, fill="white")
+                draw.text(text_position, text, font=font, fill="red")
 
     def prev_image(self):
         self.detected_damage_queue = []
