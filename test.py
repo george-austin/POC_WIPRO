@@ -1,12 +1,18 @@
-from os import listdir, path
+from os import listdir, path, makedirs
+import shutil
 from ultralytics import YOLO
 import cv2
 from ultralytics.utils.plotting import Annotator
 
 model_folder = 'train3'
 img_folder = 'datasets/test/images'
-model = YOLO('runs/detect/train17/weights/best.pt')
+model = YOLO('runs/detect/train18/weights/best.pt')
 #model = YOLO('yolov8n.pt')
+
+output_folder = 'result'
+
+# Create the output directory if it doesn't exist
+makedirs(output_folder, exist_ok=True)
 
 for img_path in listdir(img_folder):
 
@@ -18,14 +24,20 @@ for img_path in listdir(img_folder):
         annotator = Annotator(frame)
 
         boxes = r.boxes
+
+        if len(boxes) > 0:
+            output_path = path.join(output_folder, img_path)
+            shutil.copy(path.join(img_folder, img_path), output_path)
+
         for box in boxes:
             # get box coordinates in (top, left, bottom, right) format
             b = box.xyxy[0]
             c = box.cls
             annotator.box_label(b, model.names[int(c)])
 
-            with open('out.txt', 'a') as f:
-                f.write(f'{img_path}|{b}|{model.names[int(c)]}\n')
+            txt_filename = path.join(output_folder, f'{path.splitext(img_path)[0]}.txt')
+            with open(txt_filename, 'a') as f:
+                f.write(f'{b}|{model.names[int(c)]}\n')
                 print(f'{img_path}|{model.names[int(c)]}')
 
     frame = annotator.result()
