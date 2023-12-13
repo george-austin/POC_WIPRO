@@ -28,6 +28,9 @@ class ImageApp:
         self.canvas = tk.Canvas(root, width=self.CANVAS_WIDTH, height=self.CANVAS_HEIGHT)
         self.canvas.pack()
 
+        self.filename_label = tk.Label(root, text="", font=("Arial", 12))
+        self.filename_label.pack()
+
         self.prev_button = tk.Button(root, text="Previous Image", command=self.prev_image)
         self.prev_button.pack(side="left")
         self.next_button = tk.Button(root, text="Next Image", command=self.next_image)
@@ -63,6 +66,7 @@ class ImageApp:
 
             # Create an ImageDraw object to draw on the image
             self.draw = ImageDraw.Draw(image)
+            self.filename_label.config(text=os.path.basename(image_path))
 
             if not self.detected_damage_queue:
                 self.detected_damage_queue = self.get_detected_damage(image_path, width, height)
@@ -101,7 +105,7 @@ class ImageApp:
                            outline="red",
                            width=1)
             if len(detected_damage_queue) > 1:
-                font = ImageFont.truetype("arial.ttf", 14)
+                font = ImageFont.load_default()
                 text = str(detected_damage.number+1) + "."
                 text_bbox = draw.textbbox((0, 0), text, font=font)
                 text_position = (detected_damage.x1 * self.CANVAS_WIDTH - 15,
@@ -113,7 +117,7 @@ class ImageApp:
                     text_position[1] + text_bbox[3] + 2
                 ]
                 draw.rectangle(backdrop_coords, fill="white")
-                draw.text(text_position, text, font=font, fill="red")
+                draw.text(text_position, text, font=font, size=14, fill="red")
 
     def prev_image(self):
         self.detected_damage_queue = []
