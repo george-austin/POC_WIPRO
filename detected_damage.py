@@ -1,5 +1,6 @@
 from PIL import Image
 import os
+import shutil
 
 from detection_rating import DetectionRating
 
@@ -27,6 +28,11 @@ class DetectedDamage:
         self.number = number
 
     def save_new_training_data(self, detection_rating):
+        base_path, ext = os.path.splitext(os.path.basename(self.image_path))
+        self.save_to_label_file(base_path, detection_rating)
+
+    # currently not used as image is not cropped
+    def save_new_cropped_training_data(self, detection_rating):
         original_image = Image.open(self.image_path)
 
         left, lower, right, upper = self.calculate_bounding_box_coords(original_image)
@@ -39,6 +45,14 @@ class DetectedDamage:
 
         self.save_cropped_label_file(base_path, detection_rating, width, height)
 
+    def save_to_label_file(self, base_path, detection_rating):
+        detection_info = f"{detection_rating.value} {self.x1} {self.y1} {self.x2} {self.y2}\n"
+        label_filename = os.path.join(self.TRAINING_LABELS_PATH, f"{base_path}.txt")
+        with open(label_filename, 'a') as label_file:
+            # only write coords to file if it is TP, create training label file in any case.
+            if detection_rating == DetectionRating.TRUE_POSITIVE:
+                label_file.write(detection_info)
+
     def save_cropped_label_file(self, base_path, detection_rating, width, height):
         detection_info = f"{detection_rating.value} {self.CROP_MARGIN} {self.CROP_MARGIN} {width - self.CROP_MARGIN} {height - self.CROP_MARGIN}"
         label_filename = os.path.join(self.TRAINING_LABELS_PATH, f"{base_path}_{self.number}.txt")
@@ -46,6 +60,13 @@ class DetectedDamage:
             # only write coords to file if it is TP, create training label file in any case.
             if detection_rating == DetectionRating.TRUE_POSITIVE:
                 label_file.write(detection_info)
+
+    def save_original_image(self):
+        # Assuming self.image_path is the path to your original image
+        destination_path = os.path.join(self.TRAINING_IMAGES_PATH, os.path.basename(self.image_path))
+
+        # Move the image to the destination directory
+        shutil.move(self.image_path, destination_path)
 
     def save_cropped_image(self, cropped_image, base_path):
         new_filename = os.path.join(self.TRAINING_IMAGES_PATH, f"{base_path}_{self.number}.png")

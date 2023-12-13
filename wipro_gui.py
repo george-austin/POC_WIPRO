@@ -18,7 +18,7 @@ class ImageApp:
         self.draw = None
         self.root = root
         self.root.title("Auswertung Erkennung Buchschäden")
-        self.root.geometry(f"{self.CANVAS_WIDTH}x{self.CANVAS_HEIGHT + 100}")
+        self.root.geometry(f"{self.CANVAS_WIDTH}x{self.CANVAS_HEIGHT + 110}")
 
         self.image_index = 0
         self.image_paths = []
@@ -28,7 +28,7 @@ class ImageApp:
         self.canvas = tk.Canvas(root, width=self.CANVAS_WIDTH, height=self.CANVAS_HEIGHT)
         self.canvas.pack()
 
-        self.filename_label = tk.Label(root, text="", font=("Arial", 12))
+        self.filename_label = tk.Label(root, text="", fg="gray", font=("Arial", 10))
         self.filename_label.pack()
 
         self.prev_button = tk.Button(root, text="Previous Image", command=self.prev_image)
@@ -137,14 +137,26 @@ class ImageApp:
             detected_damage.save_new_training_data(detection_rating)
 
             if not self.detected_damage_queue:
-                # remove image in case all detected damage instances were rated.
-                self.remove_image()
+                # move image to training in case all detected damage instances were rated.
+                detected_damage.save_original_image()
+                self.remove_label()
                 self.next_image()
             else:
                 # reload image with removed bounding box. other detected damage instances are still visible.
                 self.show_current_image()
 
-    def remove_image(self):
+    def remove_label(self):
+        image_index = self.image_index % len(self.image_paths)
+        image_path = self.image_paths[image_index]
+        base_name = os.path.splitext(os.path.basename(image_path))[0]
+        txt_filename = os.path.join(self.OUTPUT_FOLDER, base_name + ".txt")
+        os.remove(txt_filename)
+        self.image_paths.pop(image_index)
+
+        if not self.image_paths:
+            self.show_placeholder()
+
+    def remove_image_and_label(self):
         image_index = self.image_index % len(self.image_paths)
         image_path = self.image_paths[image_index]
         base_name = os.path.splitext(os.path.basename(image_path))[0]
