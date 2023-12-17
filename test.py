@@ -4,9 +4,8 @@ from ultralytics import YOLO
 import cv2
 from ultralytics.utils.plotting import Annotator
 
-model_folder = 'train3'
 img_folder = 'datasets/test/images'
-model = YOLO('runs/detect/train18/weights/best.pt')
+model = YOLO('runs/detect/analysis_tool_model/weights/last.pt')
 #model = YOLO('yolov8n.pt')
 
 output_folder = 'result'
