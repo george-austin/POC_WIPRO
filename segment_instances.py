@@ -1,7 +1,7 @@
 import os
 import cv2
 
-dirs = ['datasets/train/labels', 'datasets/valid/labels']
+dirs = ['datasets/train/labels']
 
 for dir in dirs:
     for label_file in os.listdir(dir):
