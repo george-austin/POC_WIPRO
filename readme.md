@@ -11,18 +11,18 @@ Code for the WIPRO project "Schadenserkennung bei Büchern mit Hilfe von Machine
 ## Explanation of directories
 * [datasets](https://github.com/george-austin/POC_WIPRO/tree/main/datasets) - the training dataset
     * train - the data used to train the model
-      * images - the images used to train the model
-      * label - the labels with the same names as the images
+      * images - the images (to fill in with data)
+      * label - the labels with the same names as the images (containing labels we did on our own)
     * valid - the data used to validate the model performance during training
-      * images - the images used to validate the model
-      * label - the labels with the same names as the images
+      * images - the images (to fill in with data)
+      * label - the labels with the same names as the images (containing labels we did on our own)
     * test - test data, all the unlabeled data you want the model to run against
 * [data_analysis](https://github.com/george-austin/POC_WIPRO/tree/main/data_analysis) - contains the scripts used during initial analysis of the data
 * [data_augmentation](https://github.com/george-austin/POC_WIPRO/tree/main/data_augmentation) - contains the scripts used to change training data in any way
 * [runs/detect](https://github.com/george-austin/POC_WIPRO/tree/main/runs/detect) - contains the trained models mentioned in the project document
   * binarized_model/weights - the model trained after transforming the labels from categoric (mold, water damage, ...) to binary (no damage / damage) - 14.1% recall
-  * segmentation_model/weights - the model trained after segmenting the images around damage instances - 2.1% recall
-  * segmentation_model_wo_dirt/weights - the model using segmentation data but excluding dirt instances - 3.5% recall
+  * tiling_model/weights - the model trained after tiling the images around damage instances - 2.1% recall
+  * tiling_model_wo_dirt/weights - the model using tiling data but excluding dirt instances - 3.5% recall
   * own_labels_model/weights - the model trained after we decided to label the images on our own - 20% recall
   * analysis_tool_model/weights - the model trained after correcting the output of own_labels_model in analysis tool - 21.8% recall
 
