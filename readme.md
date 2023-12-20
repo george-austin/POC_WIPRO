@@ -4,7 +4,7 @@
 Code for the WIPRO project "Schadenserkennung bei Büchern mit Hilfe von Machine Learning" at HSLU HS 2023
 
 ## Important files
-* [train.py](https://github.com/george-austin/POC_WIPRO/blob/main/train.py) - Used to train the model. The training data should be located in the following datasets directory
+* [train.py](https://github.com/george-austin/POC_WIPRO/blob/main/train.py) - Used to train the model. The training data should be located in the following datasets, as explained in "Explanation of directories"
 * [test.py](https://github.com/george-austin/POC_WIPRO/blob/main/test.py) - Used to run the model to detect damage
 * [wipro_gui.py](https://github.com/george-austin/POC_WIPRO/blob/main/wipro_gui.py) - analysis tool - used to rate damage the model detected and then retrain the model. Options: TP / FP
 
