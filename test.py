@@ -5,7 +5,7 @@ import cv2
 from ultralytics.utils.plotting import Annotator
 
 img_folder = 'datasets/test/images'
-model = YOLO('runs/detect/tiling_model_wo_dirt/weights/best.pt')
+model = YOLO('runs/detect/own_labels_model/weights/best.pt')
 #model = YOLO('yolov8n.pt')
 
 output_folder = 'result'

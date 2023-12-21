@@ -21,8 +21,8 @@ Code for the WIPRO project "Schadenserkennung bei Büchern mit Hilfe von Machine
 * [data_augmentation](https://github.com/george-austin/POC_WIPRO/tree/main/data_augmentation) - contains the scripts used to change training data in any way
 * [runs/detect](https://github.com/george-austin/POC_WIPRO/tree/main/runs/detect) - contains the trained models mentioned in the project document
   * binarized_model/weights - the model trained after transforming the labels from categoric (mold, water damage, ...) to binary (no damage / damage) - 14.1% recall
-  * tiling_model/weights - the model trained after tiling the images around damage instances - 2.1% recall
-  * tiling_model_wo_dirt/weights - the model using tiling data but excluding dirt instances - 3.5% recall
+  * cropping_model/weights - the model trained after cropping the images around damage instances - 2.1% recall
+  * cropping_model_wo_dirt/weights - the model using cropped data but excluding dirt instances - 3.5% recall
   * own_labels_model/weights - the model trained after we decided to label the images on our own - 20% recall
   * analysis_tool_model/weights - the model trained after correcting the output of own_labels_model in analysis tool - 21.8% recall
 
